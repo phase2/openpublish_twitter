@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Implements hook_apps_app_info().
+ */
+function openpublish_twitter_apps_app_info(){
+  return array(
+    'configure form' => 'twitter_pull_app_config_form',
+  );
+}
+
+/**
+ * Implements hook_apps_servers_info().
+ */
+/*function openpublish_twitter_apps_servers_info(){
+  return array(
+    'servername' => array(
+      'title' =>
+      'description' =>
+      'manifest' =>
+    ),
+  );
+}*/
+
+/**
+ * Provides the configuration form for the app.
+ */
+function openpublish_twitter_config_form(){
+  return 'bleh';
+}

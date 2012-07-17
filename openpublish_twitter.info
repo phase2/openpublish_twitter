@@ -1,0 +1,6 @@
+name = OpenPublish Twitter
+description = A Twitter app for OpenPublish, provides a handy UI for configuring Twitter blocks.
+core = 7.x
+dependencies[] = twitter_pull
+apps[manifests][] = manifest.app
+apps[server] = development
