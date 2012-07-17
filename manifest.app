@@ -1,4 +1,4 @@
-name = Twitter Pull
+name = OpenPublish Twitter
 description = "Provides configurable twitter blocks"
 machine_name = openpublish_twitter
 version = 1.0
