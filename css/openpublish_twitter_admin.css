@@ -1,0 +1,5 @@
+#edit-placement .form-type-checkboxes .form-checkboxes,
+#edit-placement .form-type-radios .form-radios {
+  padding: 0 10px;
+  border: 1px solid #CCC;
+}

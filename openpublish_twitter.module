@@ -5,26 +5,178 @@
  */
 function openpublish_twitter_apps_app_info(){
   return array(
-    'configure form' => 'twitter_pull_app_config_form',
+    'configure form' => 'openpublish_twitter_config_form',
   );
 }
 
+
 /**
- * Implements hook_apps_servers_info().
+ * Implements hook_block_info().
  */
-/*function openpublish_twitter_apps_servers_info(){
-  return array(
-    'servername' => array(
-      'title' =>
-      'description' =>
-      'manifest' =>
-    ),
+function openpublish_twitter_block_info(){
+  $blocks = array();
+  
+  $blocks['openpublish_twitter_block'] = array(
+    'info' => 'OpenPublish Twitter Block',
   );
-}*/
+  
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function openpublish_twitter_block_view($delta = ''){
+  $block = array();
+  if($delta == 'openpublish_twitter_block'){
+    $tweet_type = variable_get('openpublish_twitter_tweet_type', 'user');
+    $num_tweets = variable_get('openpublish_twitter_num_tweets', 5);
+    $twit_key = variable_get('openpublish_twitter_search', '@openpublish');
+    
+    $title = variable_get('openpublish_twitter_block_title', '');
+    $block['subject'] = $title;
+    $block['content'] = twitter_pull_render($twit_key, '<none>', $num_tweets);
+  }
+  
+  return $block;
+}
+
 
 /**
  * Provides the configuration form for the app.
  */
 function openpublish_twitter_config_form(){
-  return 'bleh';
+  $form = array();
+  drupal_add_css(drupal_get_path('module', 'openpublish_twitter') . '/css/openpublish_twitter_admin.css');
+  
+  //Twitter Settings
+  $form['twitter'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => t('Twitter Settings'),
+  );
+  
+  $form['twitter']['openpublish_twitter_search'] = array(
+    '#type'           => 'textfield',
+    '#title'          => 'Twitter search term',
+    '#description'    => 'Enter either a username (@) or hashtag topic (#) to populate the block.',
+    '#default_value'  => variable_get('openpublish_twitter_username', '@openpublish'),
+  );
+  
+  //Display settings
+  $form['display'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#title' => t('Display Settings'),
+  );
+  
+  $form['display']['openpublish_twitter_block_title'] = array(
+    '#type'           => 'textfield',
+    '#title'          => 'Block title',
+    '#description'    => 'The title of the twitter block. Leave empty for no title.',
+    '#default_value'  => variable_get('openpublish_twitter_block_title', ''),
+  );
+  
+  $form['display']['openpublish_twitter_num_tweets'] = array(
+    '#type'           => 'textfield',
+    '#title'          => 'Number of tweets',
+    '#description'    => 'Select the number of tweets to show.',
+    '#size'           => 2,
+    '#maxlength'      => 2,
+    '#default_value'  => variable_get('openpublish_twitter_num_tweets', 5),
+  );
+  
+  
+  //Placement settings
+  $form['placement'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#title' => t('Placement Settings'),
+  );
+  
+  /*$form['display']['openpublish_twitter_enable_placement'] = array(
+    '#type'         => 'checkbox',
+    '#title'        => 'Enable app placement',
+    '#description'  => 'Check this box to have the app handle context placement. Checking this can wipe out any context placements you have done via the context menu.',
+    '#default_value' => variable_get('openpublish_twitter_enable_placement', 1),
+  );*/
+  
+  $form['placement']['openpublish_twitter_content_types'] = array(
+    '#type'           => 'checkboxes',
+    '#title'          => 'Content types',
+    '#description'    => 'Select which content types the twitter block will display next to.',
+    '#options'        => _node_types_build()->names,
+    '#default_value'  => variable_get('openpublish_twitter_content_types', array()),
+  );
+  
+  
+  $regions = array(
+    'content' => 'Content',
+    'sidebar_first' => 'Sidebar (Left)',
+    'sidebar_second' => 'Sidebar (Right)',
+  );
+  $form['placement']['openpublish_twitter_location'] = array(
+    '#type'           => 'radios',
+    '#title'          => 'Location',
+    '#description'    => 'Select where the twitter block will be placed',
+    '#options'        => $regions,
+    '#default_value'  => variable_get('openpublish_twitter_location', 'content'),
+  );
+  
+  
+  $form['preview'] = array(
+    '#markup' => '<div id="openpublish-twitter-preview"></div>',
+  );
+  
+  $form['#submit'][] = 'openpublish_twitter_config_form_submit';
+  
+  return system_settings_form($form);
+}
+
+/**
+ * Submit handler for the app config form.
+ */
+function openpublish_twitter_config_form_submit($form, $form_state){
+
+  $module = 'openpublish_twitter';
+  $block = 'openpublish_twitter_block';
+  $context = context_load('openpublish_twitter');
+  $region = $form['placement']['openpublish_twitter_location']['#value'];
+  
+  //If no context was found, we'll create the initial one. This isn't done in features because it
+  //can change with the config form, and we don't want a constantly overridden context.
+  if(!$context){
+    $context = new stdclass();
+    $context->name = 'openpublish_twitter';
+    $context->description = 'Places the OpenPublish Twitter block on various content types.';
+    $context->tag = 'OpenPublish Twitter';
+    $context->condition_mode = 0;
+    $context->table = 'context';
+    $context->type = 'Normal';
+    $context->export_type = 1;
+  }
+  
+  $context->conditions = array(
+    'node' => array(
+      'values' => $form['placement']['openpublish_twitter_content_types']['#value'],
+      'options' => array(
+        'node_form' => 0,
+      ),
+    )
+  );
+  $context->reactions = array(
+    'block' => array(
+      'blocks' => array(
+        $module.'-'.$block => array(
+          'module' => $module,
+          'delta' => $block,
+          'region' => $region,
+          'weight' => 0,
+        ),
+      ),
+    ),
+  );
+  
+  context_save($context);
 }
