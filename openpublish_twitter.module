@@ -9,6 +9,19 @@ function openpublish_twitter_apps_app_info(){
   );
 }
 
+/**
+ * Implements hook_menu().
+ */
+function openpublish_twitter_menu(){
+  //Provides an ajax callback to place the block in the preview.
+  $items['ajax/get_twitter_block'] = array(
+    'page callback' => 'openpublish_twitter_render_block',
+    'access callback' => TRUE,
+  );
+  
+  return $items;
+}
+
 
 /**
  * Implements hook_block_info().
@@ -41,13 +54,24 @@ function openpublish_twitter_block_view($delta = ''){
   return $block;
 }
 
+function openpublish_twitter_render_block(){
+  
+  $block = block_load('openpublish_twitter', 'openpublish_twitter_block');
+  $render_array = _block_get_renderable_array(_block_render_blocks(array($block)));
+  $output = render($render_array);
+  
+  print $output;
+}
+
 
 /**
  * Provides the configuration form for the app.
  */
 function openpublish_twitter_config_form(){
   $form = array();
-  drupal_add_css(drupal_get_path('module', 'openpublish_twitter') . '/css/openpublish_twitter_admin.css');
+  $path = drupal_get_path('module', 'openpublish_twitter');
+  drupal_add_css($path . '/css/openpublish_twitter_admin.css');
+  drupal_add_js($path . '/js/openpublish_twitter_form.js');
   
   //Twitter Settings
   $form['twitter'] = array(
@@ -61,7 +85,7 @@ function openpublish_twitter_config_form(){
     '#type'           => 'textfield',
     '#title'          => 'Twitter search term',
     '#description'    => 'Enter either a username (@) or hashtag topic (#) to populate the block.',
-    '#default_value'  => variable_get('openpublish_twitter_username', '@openpublish'),
+    '#default_value'  => variable_get('openpublish_twitter_search', '@openpublish'),
   );
   
   //Display settings
@@ -95,13 +119,6 @@ function openpublish_twitter_config_form(){
     '#title' => t('Placement Settings'),
   );
   
-  /*$form['display']['openpublish_twitter_enable_placement'] = array(
-    '#type'         => 'checkbox',
-    '#title'        => 'Enable app placement',
-    '#description'  => 'Check this box to have the app handle context placement. Checking this can wipe out any context placements you have done via the context menu.',
-    '#default_value' => variable_get('openpublish_twitter_enable_placement', 1),
-  );*/
-  
   $form['placement']['openpublish_twitter_content_types'] = array(
     '#type'           => 'checkboxes',
     '#title'          => 'Content types',
@@ -122,11 +139,6 @@ function openpublish_twitter_config_form(){
     '#description'    => 'Select where the twitter block will be placed',
     '#options'        => $regions,
     '#default_value'  => variable_get('openpublish_twitter_location', 'content'),
-  );
-  
-  
-  $form['preview'] = array(
-    '#markup' => '<div id="openpublish-twitter-preview"></div>',
   );
   
   $form['#submit'][] = 'openpublish_twitter_config_form_submit';
