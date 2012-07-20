@@ -9,6 +9,20 @@ function openpublish_twitter_apps_app_info(){
   );
 }
 
+/**
+ * Implements hook_menu().
+ */
+function openpublish_twitter_menu(){
+  
+  $items['admin/apps/openpublish/app/openpublish_twitter/more-boxes-help'] = array(
+    'page callback' => 'openpublish_twitter_more_blocks_help',
+    'access callback' => TRUE,
+    'title' => 'More Blocks Help',
+  );
+  
+  return $items;
+}
+
 
 /**
  * Implements hook_block_info().
@@ -61,7 +75,7 @@ function openpublish_twitter_config_form(){
     '#type'           => 'textfield',
     '#title'          => 'Twitter search term',
     '#description'    => 'Enter either a username (@) or hashtag topic (#) to populate the block.',
-    '#default_value'  => variable_get('openpublish_twitter_username', '@openpublish'),
+    '#default_value'  => variable_get('openpublish_twitter_search', '@openpublish'),
   );
   
   //Display settings
@@ -95,13 +109,6 @@ function openpublish_twitter_config_form(){
     '#title' => t('Placement Settings'),
   );
   
-  /*$form['display']['openpublish_twitter_enable_placement'] = array(
-    '#type'         => 'checkbox',
-    '#title'        => 'Enable app placement',
-    '#description'  => 'Check this box to have the app handle context placement. Checking this can wipe out any context placements you have done via the context menu.',
-    '#default_value' => variable_get('openpublish_twitter_enable_placement', 1),
-  );*/
-  
   $form['placement']['openpublish_twitter_content_types'] = array(
     '#type'           => 'checkboxes',
     '#title'          => 'Content types',
@@ -124,9 +131,9 @@ function openpublish_twitter_config_form(){
     '#default_value'  => variable_get('openpublish_twitter_location', 'content'),
   );
   
-  
-  $form['preview'] = array(
-    '#markup' => '<div id="openpublish-twitter-preview"></div>',
+  $form['more_boxes_help'] = array(
+    '#markup' => l('Need more Twitter boxes?', 'admin/apps/openpublish/app/openpublish_twitter/more-boxes-help'),
+    '#weight' => 20,
   );
   
   $form['#submit'][] = 'openpublish_twitter_config_form_submit';
@@ -179,4 +186,60 @@ function openpublish_twitter_config_form_submit($form, $form_state){
   );
   
   context_save($context);
+}
+
+
+/**
+ * Page callback for admin/apps/openpublish/app/openpublish_twitter/more-boxes-help
+ *
+ * Just spits out plain html that instructs the user on how to make and place twitter_pull blocks.
+ */
+function openpublish_twitter_more_blocks_help(){
+  $path = drupal_get_path('module', 'openpublish_twitter');
+  $text = '
+  <style>
+    p, h1, h2, h3 {margin: 20px;}
+    h1 {font-size: 28px;}
+    h2 {font-size: 20px;}
+    img {
+      border: 1px solid #AAA;
+      margin: 10px;
+      float: left;
+      max-width: 450px;
+    }
+  </style>
+  
+  <h1 id="#page-title">So, you need more Twitter blocks?</h1>
+  <p>While this app does not provide a nice UI for creating and placing multiple twitter blocks, it does utilize 2 modules which will give you the power to do: '.l('twitter_pull', 'http://drupal.org/project/twitter_pull/').', and '.l('context', 'http://drupal.org/project/context/').'.</p>
+  
+  <h2>Creating the block</h2>
+  <p>With twitter pull, you can make as many twitter blocks as you\'d like over at the '.l('add twitter pull block', 'admin/structure/block/box-add/twitter').' screen. It asks for a few more fields than OpenPublish Twitter asks for, such as the machine name which is a unique identifier name, and a description, which is the display name of the block in various menus. Make sure it\'s descriptive, i.e. "@OpenPublish box" and not "My twitter block".</p>
+  
+  <h2>Placing the block</h2>
+  
+  <p>Once you\'ve configured the box to your liking, you\'ll need to set up where to place it. This can be done in 2 ways.</p>
+  
+  <div class="clearfix">
+  <img src="/'.$path.'/images/help-block-placement.png"></img>
+  
+  <h2>Via Blocks</h2>
+  <p>The first and simplest way to place the block is by navigating to the block you just created, which should be listed on '.l('this page', 'admin/structure/block').', and going to the configure screen. You\'ll see a few new things there you didn\'t see at the block creation screen. The region settings options, which is where you specify where the block will go, and the vertical tabs at the bottom, which is where you will specify when the block should show up.</p>
+  
+  </div>
+  
+  <div class="clearfix">
+  <img src="/'.$path.'/images/help-context.png"></img>
+  
+  <h2>Via Context</h2>
+  <p>The second option is to use contexts. Contexts are a robust way of having your page\'s layout change based on conditions. You can find the context configuration screen '.l('here', 'admin/structure/context').'. You can either leverage an existing context provided by OpenPublish, or create your own for placing the twitter block.</p>
+  
+  <p>First, we\'ll cover creating your own. Hit "Add" at the top of the page, and name your context. Fill out the name, which must be in the same format as the block machine name, and select your condition. As you can see here, there are many more options than on the block placement tabs. Most of these are fairly self explanatory.</p>
+  
+  <p>For placing the block, which is the same whether or not you created your own context, you must add a block reaction. Select the twitter block you created before from the list on the right, and click "Add" on a region that you want the block to be placed. I suggest you choose Content, Sidebar First, or Sidebar Second.</p>
+  
+  </div>
+  
+  <p>And there you have it! Your block should be placed wherever you configured it to be.</p>';
+  
+  return $text;
 }
