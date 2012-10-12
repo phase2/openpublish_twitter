@@ -63,15 +63,30 @@ function openpublish_twitter_config_form(){
   $form = array();
   drupal_add_css(drupal_get_path('module', 'openpublish_twitter') . '/css/openpublish_twitter_admin.css');
   
+  //Vertical tabs fieldset
+  $form['tabs'] = array(
+    '#type' => 'vertical_tabs',
+  );
+  
+  
+  /*** Block form **/
+  
+  $form['tabs']['block'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Twitter Block',
+    '#description' => 'Modify the twitter block\'s content and placement.',
+    '#collapsible' => FALSE,
+  );
+  
   //Twitter Settings
-  $form['twitter'] = array(
+  $form['tabs']['block']['twitter'] = array(
     '#type' => 'fieldset',
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#title' => t('Twitter Settings'),
   );
   
-  $form['twitter']['openpublish_twitter_search'] = array(
+  $form['tabs']['block']['twitter']['openpublish_twitter_search'] = array(
     '#type'           => 'textfield',
     '#title'          => 'Twitter search term',
     '#description'    => 'Enter either a username (@) or hashtag topic (#) to populate the block.',
@@ -79,23 +94,23 @@ function openpublish_twitter_config_form(){
   );
   
   //Display settings
-  $form['display'] = array(
+  $form['tabs']['block']['display'] = array(
     '#type' => 'fieldset',
     '#collapsible' => FALSE,
     '#title' => t('Display Settings'),
   );
   
-  $form['display']['openpublish_twitter_block_title'] = array(
+  $form['tabs']['block']['display']['openpublish_twitter_block_title'] = array(
     '#type'           => 'textfield',
     '#title'          => 'Block title',
     '#description'    => 'The title of the twitter block. Leave empty for no title.',
     '#default_value'  => variable_get('openpublish_twitter_block_title', ''),
   );
   
-  $form['display']['openpublish_twitter_num_tweets'] = array(
+  $form['tabs']['block']['display']['openpublish_twitter_num_tweets'] = array(
     '#type'           => 'textfield',
     '#title'          => 'Number of tweets',
-    '#description'    => 'Select the number of tweets to show.',
+    '#description'    => 'Select the number of tweets to show. Leave blank to configure this on a per-field basis.',
     '#size'           => 2,
     '#maxlength'      => 2,
     '#default_value'  => variable_get('openpublish_twitter_num_tweets', 5),
@@ -103,13 +118,13 @@ function openpublish_twitter_config_form(){
   
   
   //Placement settings
-  $form['placement'] = array(
+  $form['tabs']['block']['placement'] = array(
     '#type' => 'fieldset',
     '#collapsible' => FALSE,
     '#title' => t('Placement Settings'),
   );
   
-  $form['placement']['openpublish_twitter_content_types'] = array(
+  $form['tabs']['block']['placement']['openpublish_twitter_content_types'] = array(
     '#type'           => 'checkboxes',
     '#title'          => 'Content types',
     '#description'    => 'Select which content types the twitter block will display next to.',
@@ -123,7 +138,7 @@ function openpublish_twitter_config_form(){
     'sidebar_first' => 'Sidebar (Left)',
     'sidebar_second' => 'Sidebar (Right)',
   );
-  $form['placement']['openpublish_twitter_location'] = array(
+  $form['tabs']['block']['placement']['openpublish_twitter_location'] = array(
     '#type'           => 'radios',
     '#title'          => 'Location',
     '#description'    => 'Select where the twitter block will be placed',
@@ -131,10 +146,113 @@ function openpublish_twitter_config_form(){
     '#default_value'  => variable_get('openpublish_twitter_location', 'content'),
   );
   
-  $form['more_boxes_help'] = array(
-    '#markup' => l('Need more Twitter boxes?', 'admin/apps/openpublish/app/openpublish_twitter/more-boxes-help'),
+  $form['tabs']['block']['more_boxes_help'] = array(
+    '#markup' => l('Need more Twitter blocks?', 'admin/apps/openpublish/app/openpublish_twitter/more-boxes-help'),
     '#weight' => 20,
   );
+  
+  
+  
+  /*** Field form ***/
+  
+  $form['tabs']['field'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Related Tweets Field',
+    '#description' => 'Modify which content types can use the related tweets field, and display settings.',
+    '#collapsible' => FALSE,
+  );
+  
+  $form['tabs']['field']['openpublish_twitter_field_title'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Display title',
+    '#description' => 'Use &lt;none&gt; to display no title, or leave blank to customize on a per-field basis, with a default title of the expression.',
+    '#default_value' => variable_get('openpublish_twitter_field_title'),
+  );
+  
+  $form['tabs']['field']['openpublish_twitter_field_num_tweets'] = array(
+    '#type'           => 'textfield',
+    '#title'          => 'Number of tweets',
+    '#description'    => 'Select the number of tweets to show. Leave blank to make configurations per field.',
+    '#size'           => 2,
+    '#maxlength'      => 2,
+    '#default_value'  => variable_get('openpublish_twitter_field_num_tweets', 5),
+  );
+  
+  //Get which content types have field_related_tweets, don't trust the variable.
+  $fields = field_info_field('field_related_tweets');
+  $fields = isset($fields['bundles']['node']) ? $fields['bundles']['node'] : array();
+  
+  $form['tabs']['field']['openpublish_twitter_field_content_types'] = array(
+    '#type'           => 'checkboxes',
+    '#title'          => 'Content types',
+    '#description'    => 'Select which content types will get a related tweets field. You can use the edit links to make advanced configurations, but re-submitting this form may overrwrite some settings unless left blank.',
+    '#options'        => _node_types_build()->names,
+    '#default_value'  => $fields,
+  );
+  
+  //Duplicate the checkboxes, and hide them. This is because we disable 
+  //  existing fields, and disabled checkboxes don't get sent via POST.
+  //Has to be hidden via CSS, since it's not a simple value that we can use #type => 'hidden' for
+  $form['tabs']['field']['openpublish_twitter_field_content_types_existing'] = array(
+    '#type'           => 'checkboxes',
+    '#title'          => 'I\'m supposed to be hidden. Don\'t mess with me.',
+    '#options'        => _node_types_build()->names,
+    '#default_value'  => $fields,
+  );
+  
+  //Provide links for field edit and display edit
+  $field_links = array();
+  foreach($fields as $field){
+    $url = 'admin/structure/types/manage/'.str_replace('_', '-', $field);
+    $options = array(
+      'attributes' => array(
+        'target' => '_blank',
+      ),
+    );
+    $delete_options = array(
+      'query' => array(
+        'destination' => array_shift(drupal_get_destination()),
+      ),
+    );
+    
+    $links = array();
+    $links['#prefix'] = '<div class="edit-links">';
+    $links['edit_field'] = array(
+      '#prefix' => '<div class="edit-field">',
+      '#markup' => l('Edit Field', $url.'/fields/field_related_tweets', $options),
+      '#suffix' => '</div>',
+    );
+    $links['edit_display'] = array(
+      '#prefix' => '<div class="edit-display">',
+      '#markup' => l('Edit Display', $url.'/display', $options),
+      '#suffix' => '</div>',
+    );
+    $links['delete_field'] = array(
+      '#prefix' => '<div class="delete">',
+      '#markup' => l('Delete', $url.'/fields/field_related_tweets/delete', $delete_options),
+      '#suffix' => '</div>',
+    );
+    $links['#suffix'] = '</div>';
+    
+    $form['tabs']['field']['openpublish_twitter_field_content_types'][$field]['#field_suffix'] = render($links);
+    $form['tabs']['field']['openpublish_twitter_field_content_types'][$field]['#disabled'] = TRUE;
+  }
+  
+  
+  $form['tabs']['field']['openpublish_twitter_field_expression_types'] = array(
+    '#type'           => 'checkboxes',
+    '#title'          => 'Allowed Expression Types',
+    '#description'    => 'Select which types of Twitter expressions can be used to populate the field. Select none if you wish to customize on a per-field basis.',
+    '#default_value'  => variable_get('openpublish_twitter_field_expression_types', array()),
+    '#options' => array(
+      'username' => t('Usernames (@username)'),
+      'list' => t('Lists (@username/list)'),
+      'hashtag' => t('Hashtags (#topic)'),
+      'search' => t('Searches'),
+    ),
+  );
+  
+  
   
   $form['#submit'][] = 'openpublish_twitter_config_form_submit';
   
@@ -146,10 +264,12 @@ function openpublish_twitter_config_form(){
  */
 function openpublish_twitter_config_form_submit($form, $form_state){
 
+  /*** Block stuff ***/
+
   $module = 'openpublish_twitter';
   $block = 'openpublish_twitter_block';
   $context = context_load('openpublish_twitter');
-  $region = $form['placement']['openpublish_twitter_location']['#value'];
+  $region = $form_state['values']['openpublish_twitter_location'];
   
   //If no context was found, we'll create the initial one. This isn't done in features because it
   //can change with the config form, and we don't want a constantly overridden context.
@@ -166,7 +286,7 @@ function openpublish_twitter_config_form_submit($form, $form_state){
   
   $context->conditions = array(
     'node' => array(
-      'values' => $form['placement']['openpublish_twitter_content_types']['#value'],
+      'values' => $form_state['values']['openpublish_twitter_content_types'],
       'options' => array(
         'node_form' => 0,
       ),
@@ -186,6 +306,98 @@ function openpublish_twitter_config_form_submit($form, $form_state){
   );
   
   context_save($context);
+  
+  
+  /*** Field stuff ***/
+  
+  $twit_fields = field_info_field('field_related_tweets');
+  if(!empty($twit_fields)){
+    $twit_fields = isset($twit_fields['bundles']['node']) ? $twit_fields['bundles']['node'] : array();
+  }
+  else{
+    //Create the base field
+    field_create_field(array(
+      'field_name' => 'field_related_tweets',
+      'type' => 'text'
+    ));
+    $twit_fields = array();
+  }
+  
+  //Combine the 2 checkbox fields
+  foreach($form_state['values']['openpublish_twitter_field_content_types'] as $field => $enabled){
+    if(!empty($form_state['values']['openpublish_twitter_field_content_types_existing'][$field])){
+      $form_state['values']['openpublish_twitter_field_content_types'][$field] = $field;
+    }
+  }
+  
+  foreach($form_state['values']['openpublish_twitter_field_content_types'] as $type => $enable){
+    if(!empty($enable)){
+      //Get the current settings, if it has any.
+      $instance = field_read_instance('node', 'field_related_tweets', $type);
+      if(!$instance){
+        $instance = array();
+      }
+    
+      $instance = $instance + array(
+        'field_name' => 'field_related_tweets',
+        'entity_type' => 'node',
+        'bundle' => $type,
+        'label' => 'Related Tweets',
+        'widget' => array(
+          'type' => 'twitterfield',
+        ),
+        'display' => array(
+          'default' => array(
+            'type' => 'twitterfield_twitter_pull'
+          ),
+        ),
+      );
+      
+      //Only set it if it's got any values, otherwise leave it up to the admin to set it per field.
+      if(!empty($form_state['values']['openpublish_twitter_field_expression_types'])){
+        $instance['widget']['settings']['allowed_types'] = $form_state['values']['openpublish_twitter_field_expression_types'];
+      }
+      if(!empty($form_state['values']['openpublish_twitter_field_num_tweets'])){
+        $instance['display']['default']['settings']['items'] = $form_state['values']['openpublish_twitter_field_num_tweets'];
+      }
+      if(!empty($form_state['values']['openpublish_twitter_field_title'])){
+        $instance['display']['default']['settings']['title'] = $form_state['values']['openpublish_twitter_field_title'];
+      }
+      
+      //Only set if description isn't set, or still contains the default description text and may need updating.
+      $description = 'A twitter expression to get tweets from, such as ';
+      if(empty($instance['description']) || stristr($instance['description'], $description)){
+        $examples = array();
+        foreach($form_state['values']['openpublish_twitter_field_expression_types'] as $expression){
+          //Intentionally in numeric order
+          if($expression == 'username'){
+            $examples[0] = '@username';
+          }
+          elseif($expression == 'list'){
+            $examples[1] = '@username/list';
+          }
+          elseif($expression == 'hashtag'){
+            $examples[2] = '#topic';
+          }
+          else{
+            $examples[3] = 'any search term';
+          }
+        }
+        //Append 'or' to the last example
+        $lastkey = array_pop(array_keys($examples));
+        $examples[$lastkey] = 'or '.$examples[$lastkey];
+        
+        $instance['description'] = $description.implode($examples, ', ');
+      }
+    
+      if(in_array($type, $twit_fields)){
+        field_update_instance($instance);
+      }
+      else{
+        field_create_instance($instance);
+      }
+    }
+  }
 }
 
 

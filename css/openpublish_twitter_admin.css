@@ -1,5 +1,42 @@
 #edit-placement .form-type-checkboxes .form-checkboxes,
 #edit-placement .form-type-radios .form-radios {
-  padding: 0 10px;
+  padding: 0 10px 10px;
   border: 1px solid #CCC;
+}
+
+#edit-field .ajax-progress {
+  display:none;
+}
+
+#edit-field .progress-disabled {
+  float: none;
+}
+
+.vertical-tabs .vertical-tabs-panes .vertical-tabs-pane .form-wrapper legend {
+  display: block;
+}
+
+#edit-field .form-item-openpublish-twitter-field-content-types .form-item {
+  position: relative;
+}
+
+.form-item-openpublish-twitter-field-content-types .edit-links {
+  position: absolute;
+  top: 5px;
+  right: 0px;
+}
+
+.form-item-openpublish-twitter-field-content-types .edit-links .edit-field,
+.form-item-openpublish-twitter-field-content-types .edit-links .edit-display,
+.form-item-openpublish-twitter-field-content-types .edit-links .delete {
+  padding-right: 10px;
+  float: left;
+}
+
+.form-item-openpublish-twitter-field-content-types .edit-links a {
+  font-size: 75%;
+}
+
+.form-item-openpublish-twitter-field-content-types-existing {
+  display: none;
 }

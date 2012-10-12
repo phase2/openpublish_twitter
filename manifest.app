@@ -11,6 +11,8 @@ screenshots[] = images/screen1.png
 screenshots[] = images/screen2.png
 
 dependencies[twitter_pull] = twitter_pull 1.0-rc2
+dependencies[twitterfield] = twitterfield 1.0-rc1
 
 downloadables[twitter_pull 1.0-rc2] = http://ftp.drupal.org/files/projects/twitter_pull-7.x-1.0-rc2.tar.gz
+downloadables[twitterfield 1.0-rc1] = http://ftp.drupal.org/files/projects/twitterfield-7.x-1.0-rc1.tar.gz
 downloadables[openpublish_twitter] = http://jcaldwell.appserver.dev6.fayze2.com/sites/default/files/apps/openpublish_twitter.tar.gz
